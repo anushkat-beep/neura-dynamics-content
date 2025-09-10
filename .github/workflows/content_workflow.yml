@@ -1,0 +1,55 @@
+name: Neura Dynamics Content Generation
+
+# This workflow will run on every push to the 'main' branch
+# and when a pull request is opened to the 'main' branch.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# A workflow is made up of one or more jobs.
+jobs:
+  generate_content:
+    # This job will run on the latest version of Ubuntu.
+    runs-on: ubuntu-latest
+    
+    # This job has one step.
+    steps:
+      # Step 1: Check out the repository.
+      # This action checks out your repository so the workflow can access it.
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Set up the Node.js environment.
+      # The Gemini CLI is a Node.js application, so we need to set up the environment.
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Step 3: Install the Gemini CLI.
+      # This command installs the Gemini CLI so we can use it in the next step.
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli
+
+      # Step 4: Run a Gemini CLI command to generate content.
+      # This is the core of the workflow. We use the 'gemini' command with a prompt.
+      - name: Generate Content
+        run: |
+          gemini 'For Neura Dynamics, write a short, engaging social media post about our new marketing strategies.' > generated_content.txt
+        env:
+          # This is where we use the secret you added.
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          
+      # Step 5: Save the generated content.
+      # This step saves the generated text as a file.
+      - name: Commit generated content
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add generated_content.txt
+          git commit -m "Add generated content"
+          git push
